@@ -4,10 +4,10 @@ from mysql.connector import errorcode
 
 config = {
     "user": "movies_user",
-    "password": "password",
-    "host": "127.0.0.1",
+    "password": "popcorn",
+    "host": "localhost",
     "database": "movies",
-    "raise_on_warnings": True
+    "raise_on_warnings": True 
 }
 
 try:
