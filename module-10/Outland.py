@@ -15,7 +15,7 @@ try:
     cursor = db.cursor()
 
     tables = [
-        "Employee", "Guide", "Customer", "Trip", "TripGuide",
+        "Employee", "Customer", "Trip", "TripGuide",
         "Booking", "Equipment", "EquipmentTransaction"
     ]
 

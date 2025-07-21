@@ -1,3 +1,6 @@
+-- Create the database if it doesn't exist
+CREATE DATABASE IF NOT EXISTS outland_adventures;
+
 -- Drop and create user
 DROP USER IF EXISTS 'outland_user'@'localhost';
 CREATE USER 'outland_user'@'localhost' IDENTIFIED BY 'guide';
@@ -16,7 +19,6 @@ DROP TABLE IF EXISTS Booking;
 DROP TABLE IF EXISTS TripGuide;
 DROP TABLE IF EXISTS Trip;
 DROP TABLE IF EXISTS Customer;
-DROP TABLE IF EXISTS Guide;
 DROP TABLE IF EXISTS Employee;
 
 -- Re-enable foreign key checks
@@ -28,13 +30,6 @@ CREATE TABLE IF NOT EXISTS Employee (
     FirstName VARCHAR(50),
     LastName VARCHAR(50),
     Role VARCHAR(50),
-    HireDate DATE
-);
-
-CREATE TABLE IF NOT EXISTS Guide (
-    GuideID INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50),
-    LastName VARCHAR(50),
     HireDate DATE
 );
 
@@ -58,10 +53,10 @@ CREATE TABLE IF NOT EXISTS Trip (
 
 CREATE TABLE IF NOT EXISTS TripGuide (
     TripID INT,
-    GuideID INT,
-    PRIMARY KEY (TripID, GuideID),
+    EmployeeID INT,
+    PRIMARY KEY (TripID, EmployeeID),
     FOREIGN KEY (TripID) REFERENCES Trip(TripID),
-    FOREIGN KEY (GuideID) REFERENCES Guide(GuideID)
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID)
 );
 
 CREATE TABLE IF NOT EXISTS Booking (
@@ -98,24 +93,20 @@ CREATE TABLE IF NOT EXISTS EquipmentTransaction (
     FOREIGN KEY (EquipmentID) REFERENCES Equipment(EquipmentID)
 );
 
--- Insert sample data
-
+-- Insert sample data into Employee (includes guides)
 INSERT INTO Employee (EmployeeID, FirstName, LastName, Role, HireDate) VALUES
     (1, 'Blake', 'Timmerson', 'Admin', '2020-01-01'),
     (2, 'Jim', 'Ford', 'Admin', '2020-02-01'),
     (3, 'John', 'MacNell', 'Guide', '2021-05-01'),
     (4, 'Duke', 'Marland', 'Guide', '2021-06-15'),
     (5, 'Anita', 'Gall', 'Marketing', '2021-07-01'),
-    (6, 'Tim', 'Strat', 'Inventory', '2021-08-01');
+    (6, 'Tim', 'Strat', 'Inventory', '2021-08-01'),
+    (7, 'Sophie', 'Hill', 'Guide', '2022-01-20'),
+    (8, 'Liam', 'Young', 'Guide', '2022-03-10'),
+    (9, 'Nina', 'Clark', 'Guide', '2022-05-25'),
+    (10, 'Oscar', 'Wright', 'Guide', '2023-01-05');
 
-INSERT INTO Guide (GuideID, FirstName, LastName, HireDate) VALUES
-    (1, 'John', 'MacNell', '2021-05-01'),
-    (2, 'Duke', 'Marland', '2021-06-15'),
-    (3, 'Sophie', 'Hill', '2022-01-20'),
-    (4, 'Liam', 'Young', '2022-03-10'),
-    (5, 'Nina', 'Clark', '2022-05-25'),
-    (6, 'Oscar', 'Wright', '2023-01-05');
-
+-- Insert sample Customers
 INSERT INTO Customer (CustomerID, FirstName, LastName, Email, Phone, RegistrationDate) VALUES
     (1, 'Alice', 'Smith', 'alice@gmail.com', '1234567890', '2022-01-15'),
     (2, 'Bob', 'Johnson', 'bob@gmail.com', '1234567891', '2022-02-10'),
@@ -124,6 +115,7 @@ INSERT INTO Customer (CustomerID, FirstName, LastName, Email, Phone, Registratio
     (5, 'Eva', 'Brown', 'eva@yahoo.com', '1234567894', '2022-05-18'),
     (6, 'Frank', 'Wilson', 'frank@aol.com', '1234567895', '2022-06-11');
 
+-- Insert Trips
 INSERT INTO Trip (TripID, Destination, StartDate, EndDate, VisaRequired, InoculationsRequired) VALUES
     (1, 'Africa', '2023-09-01', '2023-09-15', 1, 'Yellow Fever'),
     (2, 'Asia', '2023-10-05', '2023-10-20', 1, 'Hepatitis A, Typhoid'),
@@ -132,15 +124,16 @@ INSERT INTO Trip (TripID, Destination, StartDate, EndDate, VisaRequired, Inocula
     (5, 'Asia', '2024-03-05', '2024-03-19', 1, 'Hepatitis A'),
     (6, 'Southern Europe', '2024-05-10', '2024-05-22', 0, '');
 
-INSERT INTO TripGuide (TripID, GuideID) VALUES
-    (1, 1),  -- Africa trip in 2023-09, guided by John MacNell (hired 2021-05)
-    (2, 2),  -- Asia trip in 2023-10, guided by Duke Marland (hired 2021-06)
-    (3, 3),  -- Southern Europe in 2023-11, guided by Sophie Hill (hired 2022-01)
-    (4, 4),  -- Africa in 2024-01, guided by Liam Young (hired 2022-03)
-    (5, 5),  -- Asia in 2024-03, guided by Nina Clark (hired 2022-05)
-    (6, 6);  -- Southern Europe in 2024-05, guided by Oscar Wright (hired 2023-01)
+-- Assign guides using EmployeeID
+INSERT INTO TripGuide (TripID, EmployeeID) VALUES
+    (1, 3),  -- John MacNell
+    (2, 4),  -- Duke Marland
+    (3, 7),  -- Sophie Hill
+    (4, 8),  -- Liam Young
+    (5, 9),  -- Nina Clark
+    (6, 10); -- Oscar Wright
 
-
+-- Bookings
 INSERT INTO Booking (BookingID, CustomerID, TripID, BookingDate, PaymentStatus) VALUES
     (1, 1, 1, '2023-07-01', 'Paid'),
     (2, 2, 2, '2023-07-15', 'Paid'),
@@ -149,6 +142,7 @@ INSERT INTO Booking (BookingID, CustomerID, TripID, BookingDate, PaymentStatus) 
     (5, 5, 5, '2024-01-01', 'Paid'),
     (6, 6, 6, '2024-03-01', 'Pending');
 
+-- Equipment
 INSERT INTO Equipment (EquipmentID, Name, Type, PurchaseDate, Conditions, StockQuantity, ReorderLevel, Price, ManagedByEmployeeID) VALUES
     (1, 'Tent 2-Person', 'Tent', '2019-04-15', 'Good', 10, 3, 120.00, 6),
     (2, 'Hiking Boots', 'Footwear', '2020-07-10', 'Fair', 15, 5, 90.00, 6),
@@ -157,6 +151,7 @@ INSERT INTO Equipment (EquipmentID, Name, Type, PurchaseDate, Conditions, StockQ
     (5, 'Backpack 50L', 'Pack', '2023-03-18', 'New', 12, 4, 75.00, 6),
     (6, 'Water Filter', 'Safety', '2020-11-11', 'Good', 6, 2, 40.00, 6);
 
+-- Equipment Transactions
 INSERT INTO EquipmentTransaction (TransactionID, CustomerID, EquipmentID, TransactionType, TransactionDate, Quantity) VALUES
     (1, 1, 1, 'rental', '2023-08-15', 1),
     (2, 2, 2, 'sale', '2023-08-16', 1),
